@@ -51,10 +51,6 @@ export default function VideoAdsPage() {
     setVideoUrl(null);
     setLoadingStatus('Initializing...');
 
-    let pollIntervalId: NodeJS.Timeout | null = null;
-    let elapsed = 0;
-    const maxElapsed = 120000; // 120 seconds limit
-
     try {
       console.log('handleGenerate called');
       setLoading(true);

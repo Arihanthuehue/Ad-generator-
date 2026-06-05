@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getCached, setCached, hashPayload } from '@/lib/cache';
+import { getCached, hashPayload } from '@/lib/cache';
 
 export async function POST(req: NextRequest) {
   console.log('Video generation route hit');
