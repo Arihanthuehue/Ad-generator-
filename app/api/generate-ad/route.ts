@@ -81,7 +81,7 @@ export async function POST(req: NextRequest) {
                 generationConfig: {
                   responseModalities: ['IMAGE', 'TEXT'],
                   temperature: 1.0,
-                  aspectRatio: aspectRatio,
+
                 },
               }),
             }
