@@ -74,7 +74,7 @@ export async function POST(req: NextRequest) {
                 contents: [
                   {
                     parts: [
-                      { text: prompt }
+                      { text: `${prompt}. Generate this image in ${aspectRatio} aspect ratio, optimized for ${platform} format.` }
                     ]
                   }
                 ],
