@@ -6,7 +6,7 @@ import PillSelect from '@/components/ui/PillSelect';
 import FileDropzone from '@/components/ui/FileDropzone';
 import { Download, Loader2, ChevronDown, ChevronUp } from 'lucide-react';
 
-const VIDEO_STYLES = ['Product Showcase', 'UGC Style', 'Cinematic', 'Minimal'];
+const VIDEO_STYLES = ['Product Showcase', 'UGC Style', 'Cinematic', 'Minimal', 'UGC Creator'];
 const DURATIONS = ['4s', '6s', '8s'];
 const ASPECT_RATIOS = ['9:16', '1:1', '16:9'];
 const MOTION = ['Subtle', 'Moderate', 'Dynamic'];
@@ -40,6 +40,14 @@ export default function VideoAdsPage() {
   const [aspectRatio, setAspectRatio] = useState('16:9');
   const [motionIntensity, setMotionIntensity] = useState('Moderate');
 
+  // Creator Details (Conditional on videoStyle === 'UGC Creator')
+  const [creatorDescription, setCreatorDescription] = useState('');
+  const [creatorPosition, setCreatorPosition] = useState('Standing');
+  const [productInteraction, setProductInteraction] = useState('Holding');
+  const [creatorScript, setCreatorScript] = useState('');
+  const [energyLevel, setEnergyLevel] = useState('Authentic');
+  const [ugcSetting, setUgcSetting] = useState('Bedroom');
+
   // Section 3 — Text Overlays
   const [headlineText, setHeadlineText] = useState('');
   const [subheadline, setSubheadline] = useState('');
@@ -64,6 +72,7 @@ export default function VideoAdsPage() {
   // Expand/Collapse States
   const [brandExpanded, setBrandExpanded] = useState(true);
   const [contentExpanded, setContentExpanded] = useState(true);
+  const [creatorExpanded, setCreatorExpanded] = useState(true);
   const [textExpanded, setTextExpanded] = useState(false);
   const [audioExpanded, setAudioExpanded] = useState(false);
   const [subtitlesExpanded, setSubtitlesExpanded] = useState(false);
@@ -72,6 +81,10 @@ export default function VideoAdsPage() {
   const [loading, setLoading] = useState(false);
   const [loadingStatus, setLoadingStatus] = useState('');
   const [videoUrl, setVideoUrl] = useState<string | null>(null);
+
+  const voWordCount = voiceoverScript ? voiceoverScript.trim().split(/\s+/).filter(Boolean).length : 0;
+  const voDurationNum = parseInt(duration) || 4;
+  const voMaxWords = Math.floor(voDurationNum * 2.5);
 
   useEffect(() => {
     setFalJobRunning(false);
@@ -131,6 +144,13 @@ export default function VideoAdsPage() {
           subtitleStyle,
           colorGrade,
           setting,
+          // UGC Creator fields
+          creatorDescription: videoStyle === 'UGC Creator' ? creatorDescription : undefined,
+          creatorPosition: videoStyle === 'UGC Creator' ? creatorPosition : undefined,
+          productInteraction: videoStyle === 'UGC Creator' ? productInteraction : undefined,
+          creatorScript: videoStyle === 'UGC Creator' ? creatorScript : undefined,
+          energyLevel: videoStyle === 'UGC Creator' ? energyLevel : undefined,
+          ugcSetting: videoStyle === 'UGC Creator' ? ugcSetting : undefined,
         }),
       });
 
@@ -226,8 +246,11 @@ export default function VideoAdsPage() {
     mode, productImage, textPrompt, videoStyle, duration, aspectRatio, motionIntensity,
     brandName, productName, keyMessage, headlineText, subheadline, ctaText, textPosition, textStyle,
     voiceoverScript, voiceoverTone, musicMood, subtitlesEnabled, subtitlePosition, subtitleStyle,
-    colorGrade, setting, addVideo, addToast, isFalJobRunning, setFalJobRunning
+    colorGrade, setting, creatorDescription, creatorPosition, productInteraction, creatorScript,
+    energyLevel, ugcSetting, addVideo, addToast, isFalJobRunning, setFalJobRunning
   ]);
+
+  const isDisabled = loading || !mode;
 
   return (
     <div className="max-w-7xl">
@@ -344,6 +367,75 @@ export default function VideoAdsPage() {
             )}
           </div>
 
+          {/* Section: Creator Details (Conditional on videoStyle === 'UGC Creator') */}
+          {videoStyle === 'UGC Creator' && (
+            <div className="bg-white border border-[#E5E7EB] rounded-xl p-5 space-y-4">
+              <button
+                onClick={() => setCreatorExpanded(!creatorExpanded)}
+                className="w-full flex items-center justify-between text-sm font-semibold text-[#111111] focus:outline-none"
+              >
+                <span>Creator Details</span>
+                {creatorExpanded ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
+              </button>
+
+              {creatorExpanded && (
+                <div className="space-y-4 pt-2 border-t border-[#F3F4F6]">
+                  <div>
+                    <label className="text-sm font-medium text-[#374151]">Creator Appearance</label>
+                    <input
+                      type="text"
+                      value={creatorDescription}
+                      onChange={(e) => setCreatorDescription(e.target.value)}
+                      className="w-full mt-1 px-3 py-2 border border-[#E5E7EB] rounded-lg text-sm focus:outline-none focus:border-[#111111]"
+                      placeholder="e.g. Young woman, casual style, energetic"
+                    />
+                    <p className="text-xs text-[#9CA3AF] mt-1">Describe the AI creator's look and style</p>
+                  </div>
+
+                  <PillSelect
+                    label="Creator Position"
+                    options={['Standing', 'Sitting', 'Walking', 'Random']}
+                    value={creatorPosition}
+                    onChange={(v) => setCreatorPosition(v as string)}
+                  />
+
+                  <PillSelect
+                    label="Product Interaction"
+                    options={['Holding', 'Unboxing', 'Demonstrating', 'Reviewing', 'Gesturing toward']}
+                    value={productInteraction}
+                    onChange={(v) => setProductInteraction(v as string)}
+                  />
+
+                  <div>
+                    <label className="text-sm font-medium text-[#374151]">Creator Script</label>
+                    <textarea
+                      value={creatorScript}
+                      onChange={(e) => setCreatorScript(e.target.value.slice(0, 200))}
+                      maxLength={200}
+                      className="w-full mt-1 px-3 py-2 border border-[#E5E7EB] rounded-lg text-sm focus:outline-none focus:border-[#111111] resize-none h-20"
+                      placeholder="Write what the creator says about the product..."
+                    />
+                    <p className="text-xs text-[#9CA3AF] text-right mt-1">{creatorScript.length}/200</p>
+                  </div>
+
+                  <PillSelect
+                    label="Energy Level"
+                    options={['Excited', 'Calm', 'Authentic', 'Professional', 'Hype']}
+                    value={energyLevel}
+                    onChange={(v) => setEnergyLevel(v as string)}
+                  />
+
+                  <PillSelect
+                    label="Setting for UGC"
+                    options={['Bedroom', 'Kitchen', 'Office', 'Outdoor', 'Gym', 'Coffee Shop']}
+                    value={ugcSetting}
+                    onChange={(v) => setUgcSetting(v as string)}
+                  />
+                </div>
+              )}
+            </div>
+          )}
+
           {/* SECTION 3 — Text Overlays */}
           <div className="bg-white border border-[#E5E7EB] rounded-xl p-5 space-y-4">
             <button
@@ -414,6 +506,17 @@ export default function VideoAdsPage() {
                     placeholder="Write what should be spoken in the video..."
                   />
                   <p className="text-xs text-[#9CA3AF] text-right mt-1">{voiceoverScript.length}/300</p>
+                  {voiceoverScript && (
+                    voWordCount > voMaxWords ? (
+                      <p className="text-xs text-amber-600 mt-1 font-medium">
+                        ⚠️ {voWordCount} words may be tight for {duration}. Recommended max: {voMaxWords} words.
+                      </p>
+                    ) : (
+                      <p className="text-xs text-green-600 mt-1 font-medium">
+                        ✓ Good fit for {duration}
+                      </p>
+                    )
+                  )}
                 </div>
                 <PillSelect label="Voiceover Tone" options={VOICEOVER_TONES} value={voiceoverTone} onChange={(v) => setVoiceoverTone(v as string)} />
                 <PillSelect label="Background Music Mood" options={MUSIC_MOODS} value={musicMood} onChange={(v) => setMusicMood(v as string)} />
