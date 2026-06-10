@@ -312,14 +312,26 @@ Every frame must be beautiful enough to pause on.
 
     console.log('Sending to Veo:', JSON.stringify({ instances, parameters }, null, 2));
 
-    const submitRes = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/veo-3.0-fast-generate-001:predictLongRunning?key=${apiKey}`,
+    let submitRes = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/veo-3.1-generate-001:predictLongRunning?key=${apiKey}`,
       {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ instances, parameters })
       }
     );
+
+    if (!submitRes.ok && (submitRes.status === 429 || submitRes.status === 404)) {
+      console.log('Veo 3.1 unavailable, falling back to Veo 3.0 Fast');
+      submitRes = await fetch(
+        `https://generativelanguage.googleapis.com/v1beta/models/veo-3.0-fast-generate-001:predictLongRunning?key=${apiKey}`,
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ instances, parameters })
+        }
+      );
+    }
 
     try {
       console.log('Veo submit response:', JSON.stringify(await submitRes.clone().json(), null, 2));
