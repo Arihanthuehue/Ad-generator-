@@ -9,14 +9,20 @@ export async function POST(req: NextRequest) {
     }
 
     const body = await req.json();
-    const { prompt, platform } = body;
+    const { prompt, platform, referenceImageBase64, referenceImageMime } = body;
 
     if (!prompt) {
       return NextResponse.json({ success: false, error: 'Prompt is required' }, { status: 400 });
     }
 
     // Check cache
-    const cacheKey = await hashPayload(JSON.stringify({ prompt, platform }));
+    const cacheKey = await hashPayload(
+      JSON.stringify({
+        prompt,
+        platform,
+        referenceImageBase64: referenceImageBase64 ? referenceImageBase64.substring(0, 100) : undefined
+      })
+    );
     const cached = getCached(cacheKey);
     if (cached) {
       const encoder = new TextEncoder();
@@ -63,33 +69,97 @@ export async function POST(req: NextRequest) {
             controller.enqueue(encoder.encode(JSON.stringify({ status }) + '\n'));
           };
 
-          sendStatus('Generating ad creative...');
+          let res: Response;
 
-          const res = await fetch(
-            `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-flash-image:generateContent?key=${apiKey}`,
-            {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({
-                contents: [
-                  {
-                    parts: [
-                      { text: `${prompt}. Generate this image in ${aspectRatio} aspect ratio, optimized for ${platform} format.` }
-                    ]
+          if (referenceImageBase64) {
+            sendStatus('Using your reference image...');
+
+            const parts = [];
+            parts.push({
+              inlineData: {
+                mimeType: referenceImageMime || 'image/jpeg',
+                data: referenceImageBase64
+              }
+            });
+            parts.push({
+              text: `This is the EXACT product that must appear in the ad. 
+    Study every physical detail carefully:
+    - The exact shape, form factor, and silhouette
+    - Every curve, edge, and corner
+    - The exact camera module design, size, and placement
+    - Button positions, port locations, speaker grilles
+    - The exact color, finish, and material texture
+    - Screen shape, bezels, notch or dynamic island if present
+    - Any unique design elements specific to this exact model
+    
+    You MUST reproduce this product with 100% physical accuracy.
+    Do NOT redesign it. Do NOT simplify it. Do NOT alter any 
+    physical characteristic. Do NOT use a different model or 
+    generation. The product shape and design is FIXED and LOCKED.
+    Only the background, lighting, composition, and ad context 
+    should be creative.`
+            });
+            parts.push({
+              text: `Now create a professional advertising image with the 
+  EXACT product shown above.
+  
+  Ad details: ${prompt}
+  
+  STRICT RULES:
+  - The product must look IDENTICAL to the reference image
+  - Same camera bump shape and layout — do not simplify or alter
+  - Same exact color: ${prompt.includes('color') ? 'as described' : 'match reference exactly'}
+  - Same form factor and proportions
+  - Same screen design and bezels
+  - Only change: background scene, lighting mood, composition angle
+  
+  Style: Professional commercial product photography
+  Format: ${aspectRatio} aspect ratio, optimized for ${platform}
+  Quality: Magazine-grade advertising photography`
+            });
+
+            res = await fetch(
+              `https://generativelanguage.googleapis.com/v1beta/models/gemini-3-pro-image:generateContent?key=${apiKey}`,
+              {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                  contents: [{ parts }],
+                  generationConfig: {
+                    responseModalities: ['IMAGE', 'TEXT'],
+                    temperature: 1.0,
                   }
-                ],
-                generationConfig: {
-                  responseModalities: ['IMAGE', 'TEXT'],
-                  temperature: 1.0,
+                })
+              }
+            );
+          } else {
+            sendStatus('Generating ad creative...');
 
-                },
-              }),
-            }
-          );
+            res = await fetch(
+              `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-flash-image:generateContent?key=${apiKey}`,
+              {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                  contents: [
+                    {
+                      parts: [
+                        { text: `${prompt}. Generate this image in ${aspectRatio} aspect ratio, optimized for ${platform} format. Professional commercial advertising quality.` }
+                      ]
+                    }
+                  ],
+                  generationConfig: {
+                    responseModalities: ['IMAGE', 'TEXT'],
+                    temperature: 1.0,
+                  },
+                }),
+              }
+            );
+          }
 
           if (!res.ok) {
             const errText = await res.text();
-            throw new Error(`Gemini 3.1 Flash Image error: ${res.status} ${errText}`);
+            throw new Error(`Gemini Image API error: ${res.status} ${errText}`);
           }
 
           const data = await res.json();
@@ -103,7 +173,7 @@ export async function POST(req: NextRequest) {
 
           const imageBase64 = `data:${part.inlineData.mimeType || 'image/jpeg'};base64,${bytes}`;
           const result = { imageUrl: imageBase64, platform };
-          setCached(cacheKey, result, 86400);
+          setCached(cacheKey, result, 3600);
 
           controller.enqueue(encoder.encode(JSON.stringify({ success: true, data: result }) + '\n'));
           controller.close();

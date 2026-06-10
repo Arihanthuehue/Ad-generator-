@@ -4,16 +4,34 @@ import { useState, useCallback, useEffect } from 'react';
 import { useAppStore } from '@/store/useAppStore';
 import PillSelect from '@/components/ui/PillSelect';
 import FileDropzone from '@/components/ui/FileDropzone';
-import { Download, Loader2 } from 'lucide-react';
+import { Download, Loader2, ChevronDown, ChevronUp } from 'lucide-react';
 
 const VIDEO_STYLES = ['Product Showcase', 'UGC Style', 'Cinematic', 'Minimal'];
 const DURATIONS = ['4s', '6s', '8s'];
 const ASPECT_RATIOS = ['9:16', '1:1', '16:9'];
 const MOTION = ['Subtle', 'Moderate', 'Dynamic'];
 
+const TEXT_POSITIONS = ['Top', 'Center', 'Bottom', 'Lower Third'];
+const TEXT_STYLES = ['Bold', 'Minimal', 'Elegant', 'Streetwear'];
+
+const VOICEOVER_TONES = ['Energetic', 'Calm', 'Authoritative', 'Friendly', 'Luxury'];
+const MUSIC_MOODS = ['Upbeat', 'Cinematic', 'Minimal', 'Dramatic', 'None'];
+
+const SUBTITLE_POSITIONS = ['Bottom', 'Top'];
+const SUBTITLE_STYLES = ['Clean', 'Bold', 'Highlighted'];
+
+const COLOR_GRADES = ['Natural', 'Warm', 'Cold', 'High Contrast', 'Cinematic Teal-Orange'];
+const SETTINGS = ['Studio', 'Outdoor', 'Urban', 'Home', 'Abstract'];
+
 export default function VideoAdsPage() {
   const { addVideo, addToast, isFalJobRunning, setFalJobRunning } = useAppStore();
 
+  // Section 1 — Brand & Product
+  const [brandName, setBrandName] = useState('');
+  const [productName, setProductName] = useState('');
+  const [keyMessage, setKeyMessage] = useState('');
+
+  // Section 2 — Video Content
   const [mode, setMode] = useState<'image' | 'text'>('text');
   const [productImage, setProductImage] = useState<string | null>(null);
   const [textPrompt, setTextPrompt] = useState('');
@@ -21,6 +39,36 @@ export default function VideoAdsPage() {
   const [duration, setDuration] = useState('4s');
   const [aspectRatio, setAspectRatio] = useState('16:9');
   const [motionIntensity, setMotionIntensity] = useState('Moderate');
+
+  // Section 3 — Text Overlays
+  const [headlineText, setHeadlineText] = useState('');
+  const [subheadline, setSubheadline] = useState('');
+  const [ctaText, setCtaText] = useState('');
+  const [textPosition, setTextPosition] = useState('Center');
+  const [textStyle, setTextStyle] = useState('Bold');
+
+  // Section 4 — Audio & Dialogue
+  const [voiceoverScript, setVoiceoverScript] = useState('');
+  const [voiceoverTone, setVoiceoverTone] = useState('Friendly');
+  const [musicMood, setMusicMood] = useState('Upbeat');
+
+  // Section 5 — Subtitles
+  const [subtitlesEnabled, setSubtitlesEnabled] = useState(false);
+  const [subtitlePosition, setSubtitlePosition] = useState('Bottom');
+  const [subtitleStyle, setSubtitleStyle] = useState('Clean');
+
+  // Section 6 — Scene & Mood
+  const [colorGrade, setColorGrade] = useState('Natural');
+  const [setting, setSetting] = useState('Studio');
+
+  // Expand/Collapse States
+  const [brandExpanded, setBrandExpanded] = useState(true);
+  const [contentExpanded, setContentExpanded] = useState(true);
+  const [textExpanded, setTextExpanded] = useState(false);
+  const [audioExpanded, setAudioExpanded] = useState(false);
+  const [subtitlesExpanded, setSubtitlesExpanded] = useState(false);
+  const [sceneExpanded, setSceneExpanded] = useState(false);
+
   const [loading, setLoading] = useState(false);
   const [loadingStatus, setLoadingStatus] = useState('');
   const [videoUrl, setVideoUrl] = useState<string | null>(null);
@@ -36,8 +84,8 @@ export default function VideoAdsPage() {
       addToast('Please upload a product image.', 'error');
       return;
     }
-    if (mode === 'text' && !textPrompt) {
-      addToast('Please enter a text description.', 'error');
+    if (mode === 'text' && !textPrompt && !productName) {
+      addToast('Please enter a text description or product name.', 'error');
       return;
     }
 
@@ -49,20 +97,12 @@ export default function VideoAdsPage() {
     setLoading(true);
     setFalJobRunning(true);
     setVideoUrl(null);
-    setLoadingStatus('Initializing...');
+    setLoadingStatus('Building your ad...');
 
     try {
-      console.log('handleGenerate called');
-      setLoading(true);
-      setFalJobRunning(true);
-      setVideoUrl(null);
-      setLoadingStatus('Initializing...');
+      setLoadingStatus('Submitting to Veo 3.0...');
 
-      const prompt = mode === 'text'
-        ? `${videoStyle} video ad: ${textPrompt}. ${motionIntensity} motion.`
-        : `${videoStyle} product showcase video. ${motionIntensity} motion.`;
-
-      console.log('Submitting with prompt:', prompt);
+      const prompt = textPrompt; // the description textarea maps to prompt
 
       const res = await fetch('/api/generate-video', {
         method: 'POST',
@@ -73,13 +113,28 @@ export default function VideoAdsPage() {
           mode,
           duration,
           aspectRatio,
+          brandName,
+          productName,
+          keyMessage,
+          videoStyle,
           motionIntensity,
+          headlineText,
+          subheadline,
+          ctaText,
+          textPosition,
+          textStyle,
+          voiceoverScript,
+          voiceoverTone,
+          musicMood,
+          subtitlesEnabled,
+          subtitlePosition,
+          subtitleStyle,
+          colorGrade,
+          setting,
         }),
       });
 
-      console.log('Response status:', res.status, res.ok);
       const postData = await res.json();
-      console.log('Response data:', JSON.stringify(postData));
 
       if (!postData.success) {
         throw new Error(postData.error || 'Failed to submit job');
@@ -95,19 +150,17 @@ export default function VideoAdsPage() {
       }
 
       const { operationName, cacheKey } = postData;
-      console.log('Operation name:', operationName);
 
       if (!operationName) {
         throw new Error('No operation name returned');
       }
 
-      setLoadingStatus('Video submitted, generating...');
+      setLoadingStatus('Generating video...');
 
       let elapsed = 0;
       const maxElapsed = 180000;
       const pollIntervalId = setInterval(async () => {
         elapsed += 5000;
-        console.log('Polling... elapsed:', elapsed);
 
         if (elapsed >= maxElapsed) {
           clearInterval(pollIntervalId);
@@ -127,9 +180,7 @@ export default function VideoAdsPage() {
           const pollRes = await fetch(
             `/api/generate-video/poll?operation=${encodeURIComponent(operationName)}${cacheParam}`
           );
-          console.log('Poll response status:', pollRes.status);
           const pollData = await pollRes.json();
-          console.log('Poll data:', JSON.stringify(pollData));
 
           if (pollData.done && pollData.videoUrl) {
             clearInterval(pollIntervalId);
@@ -171,7 +222,12 @@ export default function VideoAdsPage() {
       setLoadingStatus('');
       addToast(err instanceof Error ? err.message : 'Failed to generate video', 'error');
     }
-  }, [mode, productImage, textPrompt, videoStyle, duration, aspectRatio, motionIntensity, addVideo, addToast, isFalJobRunning, setFalJobRunning]);
+  }, [
+    mode, productImage, textPrompt, videoStyle, duration, aspectRatio, motionIntensity,
+    brandName, productName, keyMessage, headlineText, subheadline, ctaText, textPosition, textStyle,
+    voiceoverScript, voiceoverTone, musicMood, subtitlesEnabled, subtitlePosition, subtitleStyle,
+    colorGrade, setting, addVideo, addToast, isFalJobRunning, setFalJobRunning
+  ]);
 
   return (
     <div className="max-w-7xl">
@@ -181,55 +237,242 @@ export default function VideoAdsPage() {
       </div>
 
       <div className="flex gap-6">
+        {/* Left Input Panel */}
         <div className="w-[380px] flex-shrink-0 space-y-6">
+          
+          {/* SECTION 1 — Brand & Product */}
           <div className="bg-white border border-[#E5E7EB] rounded-xl p-5 space-y-4">
-            <div>
-              <label className="text-sm font-medium text-[#374151] mb-2 block">Generation Mode</label>
-              <div className="flex rounded-lg border border-[#E5E7EB] overflow-hidden">
-                <button
-                  onClick={() => setMode('text')}
-                  className={`flex-1 py-2 text-sm font-medium transition-colors ${mode === 'text' ? 'bg-[#111111] text-white' : 'bg-white text-[#6B7280]'}`}
-                >
-                  From Text
-                </button>
-                <button
-                  onClick={() => setMode('image')}
-                  className={`flex-1 py-2 text-sm font-medium transition-colors ${mode === 'image' ? 'bg-[#111111] text-white' : 'bg-white text-[#6B7280]'}`}
-                >
-                  From Image
-                </button>
-              </div>
-            </div>
+            <button
+              onClick={() => setBrandExpanded(!brandExpanded)}
+              className="w-full flex items-center justify-between text-sm font-semibold text-[#111111] focus:outline-none"
+            >
+              <span>Brand & Product</span>
+              {brandExpanded ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
+            </button>
 
-            {mode === 'image' ? (
-              <FileDropzone
-                label="Product Image"
-                onFileSelect={(_, preview) => setProductImage(preview)}
-                preview={productImage}
-              />
-            ) : (
-              <div>
-                <label className="text-sm font-medium text-[#374151]">Text Description</label>
-                <textarea
-                  value={textPrompt}
-                  onChange={(e) => setTextPrompt(e.target.value)}
-                  className="w-full mt-1 px-3 py-2 border border-[#E5E7EB] rounded-lg text-sm focus:outline-none focus:border-[#111111] resize-none h-24"
-                  placeholder="Describe the video you want..."
-                />
+            {brandExpanded && (
+              <div className="space-y-4 pt-2 border-t border-[#F3F4F6]">
+                <div>
+                  <label className="text-sm font-medium text-[#374151]">Brand Name</label>
+                  <input
+                    type="text"
+                    value={brandName}
+                    onChange={(e) => setBrandName(e.target.value)}
+                    className="w-full mt-1 px-3 py-2 border border-[#E5E7EB] rounded-lg text-sm focus:outline-none focus:border-[#111111]"
+                    placeholder="e.g. Apple"
+                  />
+                </div>
+                <div>
+                  <label className="text-sm font-medium text-[#374151]">Product Name</label>
+                  <input
+                    type="text"
+                    value={productName}
+                    onChange={(e) => setProductName(e.target.value)}
+                    className="w-full mt-1 px-3 py-2 border border-[#E5E7EB] rounded-lg text-sm focus:outline-none focus:border-[#111111]"
+                    placeholder="e.g. iPhone 17 Pro Max"
+                  />
+                </div>
+                <div>
+                  <label className="text-sm font-medium text-[#374151]">Key Message / Tagline</label>
+                  <input
+                    type="text"
+                    value={keyMessage}
+                    onChange={(e) => setKeyMessage(e.target.value.slice(0, 80))}
+                    maxLength={80}
+                    className="w-full mt-1 px-3 py-2 border border-[#E5E7EB] rounded-lg text-sm focus:outline-none focus:border-[#111111]"
+                    placeholder="e.g. The future is here"
+                  />
+                  <p className="text-xs text-[#9CA3AF] text-right mt-1">{keyMessage.length}/80</p>
+                </div>
               </div>
             )}
-
-            <PillSelect label="Video Style" options={VIDEO_STYLES} value={videoStyle} onChange={(v) => setVideoStyle(v as string)} />
-            <PillSelect label="Duration" options={DURATIONS} value={duration} onChange={(v) => setDuration(v as string)} />
-            <PillSelect label="Aspect Ratio" options={ASPECT_RATIOS} value={aspectRatio} onChange={(v) => setAspectRatio(v as string)} />
-            <PillSelect label="Motion Intensity" options={MOTION} value={motionIntensity} onChange={(v) => setMotionIntensity(v as string)} />
           </div>
 
+          {/* SECTION 2 — Video Content */}
+          <div className="bg-white border border-[#E5E7EB] rounded-xl p-5 space-y-4">
+            <button
+              onClick={() => setContentExpanded(!contentExpanded)}
+              className="w-full flex items-center justify-between text-sm font-semibold text-[#111111] focus:outline-none"
+            >
+              <span>Video Content</span>
+              {contentExpanded ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
+            </button>
+
+            {contentExpanded && (
+              <div className="space-y-4 pt-2 border-t border-[#F3F4F6]">
+                <div>
+                  <label className="text-sm font-medium text-[#374151] mb-2 block">Generation Mode</label>
+                  <div className="flex rounded-lg border border-[#E5E7EB] overflow-hidden">
+                    <button
+                      onClick={() => setMode('text')}
+                      className={`flex-1 py-2 text-sm font-medium transition-colors ${mode === 'text' ? 'bg-[#111111] text-white' : 'bg-white text-[#6B7280]'}`}
+                    >
+                      From Text
+                    </button>
+                    <button
+                      onClick={() => setMode('image')}
+                      className={`flex-1 py-2 text-sm font-medium transition-colors ${mode === 'image' ? 'bg-[#111111] text-white' : 'bg-white text-[#6B7280]'}`}
+                    >
+                      From Image
+                    </button>
+                  </div>
+                </div>
+
+                {mode === 'image' ? (
+                  <FileDropzone
+                    label="Product Image"
+                    onFileSelect={(_, preview) => setProductImage(preview)}
+                    preview={productImage}
+                  />
+                ) : (
+                  <div>
+                    <label className="text-sm font-medium text-[#374151]">Text Description</label>
+                    <textarea
+                      value={textPrompt}
+                      onChange={(e) => setTextPrompt(e.target.value)}
+                      className="w-full mt-1 px-3 py-2 border border-[#E5E7EB] rounded-lg text-sm focus:outline-none focus:border-[#111111] resize-none h-24"
+                      placeholder="Describe the video you want..."
+                    />
+                  </div>
+                )}
+
+                <PillSelect label="Video Style" options={VIDEO_STYLES} value={videoStyle} onChange={(v) => setVideoStyle(v as string)} />
+                <PillSelect label="Duration" options={DURATIONS} value={duration} onChange={(v) => setDuration(v as string)} />
+                <PillSelect label="Aspect Ratio" options={ASPECT_RATIOS} value={aspectRatio} onChange={(v) => setAspectRatio(v as string)} />
+                <PillSelect label="Motion Intensity" options={MOTION} value={motionIntensity} onChange={(v) => setMotionIntensity(v as string)} />
+              </div>
+            )}
+          </div>
+
+          {/* SECTION 3 — Text Overlays */}
+          <div className="bg-white border border-[#E5E7EB] rounded-xl p-5 space-y-4">
+            <button
+              onClick={() => setTextExpanded(!textExpanded)}
+              className="w-full flex items-center justify-between text-sm font-semibold text-[#111111] focus:outline-none"
+            >
+              <span>Text Overlays</span>
+              {textExpanded ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
+            </button>
+
+            {textExpanded && (
+              <div className="space-y-4 pt-2 border-t border-[#F3F4F6]">
+                <div>
+                  <label className="text-sm font-medium text-[#374151]">Headline Text</label>
+                  <input
+                    type="text"
+                    value={headlineText}
+                    onChange={(e) => setHeadlineText(e.target.value)}
+                    className="w-full mt-1 px-3 py-2 border border-[#E5E7EB] rounded-lg text-sm focus:outline-none focus:border-[#111111]"
+                    placeholder="Main text shown on screen"
+                  />
+                </div>
+                <div>
+                  <label className="text-sm font-medium text-[#374151]">Subheadline</label>
+                  <input
+                    type="text"
+                    value={subheadline}
+                    onChange={(e) => setSubheadline(e.target.value)}
+                    className="w-full mt-1 px-3 py-2 border border-[#E5E7EB] rounded-lg text-sm focus:outline-none focus:border-[#111111]"
+                    placeholder="Secondary text or description"
+                  />
+                </div>
+                <div>
+                  <label className="text-sm font-medium text-[#374151]">CTA Text</label>
+                  <input
+                    type="text"
+                    value={ctaText}
+                    onChange={(e) => setCtaText(e.target.value)}
+                    className="w-full mt-1 px-3 py-2 border border-[#E5E7EB] rounded-lg text-sm focus:outline-none focus:border-[#111111]"
+                    placeholder="e.g. Shop Now, Learn More, Get Started"
+                  />
+                </div>
+                <PillSelect label="Text Position" options={TEXT_POSITIONS} value={textPosition} onChange={(v) => setTextPosition(v as string)} />
+                <PillSelect label="Text Style" options={TEXT_STYLES} value={textStyle} onChange={(v) => setTextStyle(v as string)} />
+              </div>
+            )}
+          </div>
+
+          {/* SECTION 4 — Audio & Dialogue */}
+          <div className="bg-white border border-[#E5E7EB] rounded-xl p-5 space-y-4">
+            <button
+              onClick={() => setAudioExpanded(!audioExpanded)}
+              className="w-full flex items-center justify-between text-sm font-semibold text-[#111111] focus:outline-none"
+            >
+              <span>Audio & Dialogue</span>
+              {audioExpanded ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
+            </button>
+
+            {audioExpanded && (
+              <div className="space-y-4 pt-2 border-t border-[#F3F4F6]">
+                <div>
+                  <label className="text-sm font-medium text-[#374151]">Voiceover Script</label>
+                  <textarea
+                    value={voiceoverScript}
+                    onChange={(e) => setVoiceoverScript(e.target.value.slice(0, 300))}
+                    maxLength={300}
+                    className="w-full mt-1 px-3 py-2 border border-[#E5E7EB] rounded-lg text-sm focus:outline-none focus:border-[#111111] resize-none h-24"
+                    placeholder="Write what should be spoken in the video..."
+                  />
+                  <p className="text-xs text-[#9CA3AF] text-right mt-1">{voiceoverScript.length}/300</p>
+                </div>
+                <PillSelect label="Voiceover Tone" options={VOICEOVER_TONES} value={voiceoverTone} onChange={(v) => setVoiceoverTone(v as string)} />
+                <PillSelect label="Background Music Mood" options={MUSIC_MOODS} value={musicMood} onChange={(v) => setMusicMood(v as string)} />
+              </div>
+            )}
+          </div>
+
+          {/* SECTION 5 — Subtitles */}
+          <div className="bg-white border border-[#E5E7EB] rounded-xl p-5 space-y-4">
+            <button
+              onClick={() => setSubtitlesExpanded(!subtitlesExpanded)}
+              className="w-full flex items-center justify-between text-sm font-semibold text-[#111111] focus:outline-none"
+            >
+              <span>Subtitles</span>
+              {subtitlesExpanded ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
+            </button>
+
+            {subtitlesExpanded && (
+              <div className="space-y-4 pt-2 border-t border-[#F3F4F6]">
+                <div className="flex items-center justify-between">
+                  <label className="text-sm font-medium text-[#374151]">Enable Subtitles</label>
+                  <input
+                    type="checkbox"
+                    checked={subtitlesEnabled}
+                    onChange={(e) => setSubtitlesEnabled(e.target.checked)}
+                    className="w-4 h-4 text-[#111111] border-[#E5E7EB] rounded focus:ring-[#111111]"
+                  />
+                </div>
+                {subtitlesEnabled && (
+                  <>
+                    <PillSelect label="Subtitle Position" options={SUBTITLE_POSITIONS} value={subtitlePosition} onChange={(v) => setSubtitlePosition(v as string)} />
+                    <PillSelect label="Subtitle Style" options={SUBTITLE_STYLES} value={subtitleStyle} onChange={(v) => setSubtitleStyle(v as string)} />
+                  </>
+                )}
+              </div>
+            )}
+          </div>
+
+          {/* SECTION 6 — Scene & Mood */}
+          <div className="bg-white border border-[#E5E7EB] rounded-xl p-5 space-y-4">
+            <button
+              onClick={() => setSceneExpanded(!sceneExpanded)}
+              className="w-full flex items-center justify-between text-sm font-semibold text-[#111111] focus:outline-none"
+            >
+              <span>Scene & Mood</span>
+              {sceneExpanded ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
+            </button>
+
+            {sceneExpanded && (
+              <div className="space-y-4 pt-2 border-t border-[#F3F4F6]">
+                <PillSelect label="Color Grade" options={COLOR_GRADES} value={colorGrade} onChange={(v) => setColorGrade(v as string)} />
+                <PillSelect label="Setting" options={SETTINGS} value={setting} onChange={(v) => setSetting(v as string)} />
+              </div>
+            )}
+          </div>
+
+          {/* Generate Button */}
           <button
-            onClick={() => {
-              console.log('BUTTON CLICKED');
-              handleGenerate();
-            }}
+            onClick={handleGenerate}
             disabled={loading}
             className={`w-full py-3 rounded-lg text-sm font-medium transition-colors flex items-center justify-center gap-2 ${
               loading ? 'bg-[#E5E7EB] text-[#9CA3AF] cursor-not-allowed' : 'bg-[#111111] text-white hover:bg-[#333333]'
@@ -241,6 +484,7 @@ export default function VideoAdsPage() {
           <p className="text-xs text-[#9CA3AF] text-center">Video generation takes 30-90 seconds. Please wait after clicking generate.</p>
         </div>
 
+        {/* Right Panel - Result */}
         <div className="flex-1">
           {loading && !videoUrl && (
             <div className="bg-white border border-[#E5E7EB] rounded-xl p-8 text-center">

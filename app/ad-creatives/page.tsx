@@ -4,7 +4,7 @@ import { useState, useCallback } from 'react';
 import { useAppStore } from '@/store/useAppStore';
 import PillSelect from '@/components/ui/PillSelect';
 import FileDropzone from '@/components/ui/FileDropzone';
-import { Download, Check, Loader2 } from 'lucide-react';
+import { Download, Check, Loader2, ChevronDown, ChevronUp } from 'lucide-react';
 import { canGenerate, recordCall } from '@/lib/generationGuard';
 
 const INDUSTRIES = ['E-commerce', 'SaaS', 'Fashion', 'Food & Beverage', 'Real Estate', 'Health & Wellness', 'Finance', 'Other'];
@@ -27,6 +27,8 @@ export default function AdCreativesPage() {
   const [style, setStyle] = useState('Minimalist');
   const [tone, setTone] = useState('Light');
   const [loading, setLoading] = useState(false);
+  const [referenceExpanded, setReferenceExpanded] = useState(false);
+  const [referenceImage, setReferenceImage] = useState<string | null>(null);
   const [loadingStatus, setLoadingStatus] = useState('');
   const [results, setResults] = useState<Array<{ imageUrl: string; platform: string; fromCache?: boolean }>>([]);
   const [cooldown, setCooldown] = useState(0);
@@ -58,7 +60,16 @@ export default function AdCreativesPage() {
         const res = await fetch('/api/generate-ad', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ prompt, platform }),
+          body: JSON.stringify({
+            prompt,
+            platform,
+            referenceImageBase64: referenceImage 
+              ? referenceImage.split(',')[1]  // strip data URL prefix
+              : undefined,
+            referenceImageMime: referenceImage
+              ? referenceImage.split(';')[0].split(':')[1]
+              : undefined,
+          }),
         });
 
         if (!res.body) {
@@ -152,7 +163,7 @@ export default function AdCreativesPage() {
         return prev - 1;
       });
     }, 1000);
-  }, [brandName, industry, brandColor, productName, tagline, audience, ctaText, platforms, style, tone, addAd, addToast]);
+  }, [brandName, industry, brandColor, productName, tagline, audience, ctaText, platforms, style, tone, referenceImage, addAd, addToast]);
 
   const isDisabled = loading || cooldown > 0 || !brandName || !productName || platforms.length === 0;
 
@@ -284,6 +295,33 @@ export default function AdCreativesPage() {
             <h3 className="text-sm font-semibold text-[#111111]">Step 3 — Style</h3>
             <PillSelect label="Visual Style" options={STYLES} value={style} onChange={(v) => setStyle(v as string)} />
             <PillSelect label="Color Tone" options={TONES} value={tone} onChange={(v) => setTone(v as string)} />
+          </div>
+
+          {/* Collapsible Reference Image (Optional) */}
+          <div className="bg-white border border-[#E5E7EB] rounded-xl p-5 space-y-4">
+            <button
+              onClick={() => setReferenceExpanded(!referenceExpanded)}
+              className="w-full flex items-center justify-between text-sm font-semibold text-[#111111] focus:outline-none"
+            >
+              <span>Reference Image (Optional)</span>
+              {referenceExpanded ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
+            </button>
+
+            {referenceExpanded && (
+              <div className="space-y-4 pt-2 border-t border-[#F3F4F6]">
+                <FileDropzone
+                  label="Product / Brand Reference"
+                  onFileSelect={(_, preview) => setReferenceImage(preview)}
+                  preview={referenceImage}
+                  compact
+                />
+                <p className="text-xs text-[#6B7280]">
+                  Upload a reference image so AI generates your product accurately. 
+                  Recommended for specific products, logos, or branded visuals. 
+                  AI can make mistakes without a reference.
+                </p>
+              </div>
+            )}
           </div>
 
           <button

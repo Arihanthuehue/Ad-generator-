@@ -10,10 +10,26 @@ export async function POST(req: NextRequest) {
     }
 
     const body = await req.json();
-    const { prompt, imageUrl, mode, duration, aspectRatio } = body;
+    const { 
+      prompt, imageUrl, mode, duration, aspectRatio,
+      brandName, productName, keyMessage,
+      videoStyle, motionIntensity,
+      headlineText, subheadline, ctaText, textPosition, textStyle,
+      voiceoverScript, voiceoverTone, musicMood,
+      subtitlesEnabled, subtitlePosition, subtitleStyle,
+      colorGrade, setting
+    } = body;
 
-    // Check cache
-    const cacheKey = await hashPayload(JSON.stringify({ prompt, imageUrl, mode, duration, aspectRatio }));
+    // Check cache using all payload fields
+    const cacheKey = await hashPayload(JSON.stringify({ 
+      prompt, imageUrl, mode, duration, aspectRatio,
+      brandName, productName, keyMessage,
+      videoStyle, motionIntensity,
+      headlineText, subheadline, ctaText, textPosition, textStyle,
+      voiceoverScript, voiceoverTone, musicMood,
+      subtitlesEnabled, subtitlePosition, subtitleStyle,
+      colorGrade, setting
+    }));
     const cached = getCached(cacheKey) as { videoUrl?: string } | null;
     if (cached) {
       return NextResponse.json({ success: true, videoUrl: cached.videoUrl, fromCache: true });
@@ -37,11 +53,47 @@ export async function POST(req: NextRequest) {
       }
     }
 
+    // Build comprehensive Veo prompt
+    const veoPrompt = `
+${videoStyle} video advertisement for ${brandName || 'a brand'}.
+Product: ${productName || prompt}.
+${keyMessage ? `Key message: "${keyMessage}".` : ''}
+
+SCENE & VISUAL:
+Setting: ${setting} environment.
+Color grade: ${colorGrade} color treatment throughout.
+Motion: ${motionIntensity} camera and subject motion.
+Cinematic quality, commercial advertising standard.
+
+${headlineText ? `TEXT OVERLAYS:
+Display headline text "${headlineText}" at ${textPosition} of frame.
+${subheadline ? `Subheadline: "${subheadline}".` : ''}
+${ctaText ? `CTA button/text: "${ctaText}" prominently displayed.` : ''}
+Text style: ${textStyle} typography.` : ''}
+
+${voiceoverScript ? `VOICEOVER:
+A ${voiceoverTone} voice speaks: "${voiceoverScript}"
+Voiceover should feel ${voiceoverTone} and match the brand tone.` : ''}
+
+${musicMood !== 'None' ? `AUDIO:
+Background music mood: ${musicMood}. 
+Music should complement the ${voiceoverTone || 'brand'} tone.` : 'No background music.'}
+
+${subtitlesEnabled ? `SUBTITLES:
+Display subtitles at ${subtitlePosition} of frame.
+Subtitle style: ${subtitleStyle}.
+Subtitles should match the voiceover text exactly.` : ''}
+
+Duration: ${duration} seconds.
+Aspect ratio: ${aspectRatio}.
+Professional commercial advertising quality.
+`.trim();
+
     // Prepare Request Payload
     const instances: Array<Record<string, unknown>> = [];
     if (mode === 'image' && bytesBase64Encoded) {
       instances.push({
-        prompt: prompt || 'Product showcase video ad',
+        prompt: veoPrompt,
         image: {
           bytesBase64Encoded,
           mimeType: 'image/jpeg'
@@ -49,7 +101,7 @@ export async function POST(req: NextRequest) {
       });
     } else {
       instances.push({
-        prompt: prompt || 'Cinematic video ad description'
+        prompt: veoPrompt
       });
     }
 

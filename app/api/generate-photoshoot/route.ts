@@ -37,22 +37,97 @@ export async function POST(req: NextRequest) {
     }
 
     const scenePrompts: Record<string, string> = {
-      'Studio White': 'a seamless pure white studio backdrop with soft box lighting and a subtle drop shadow beneath the product',
-      'Lifestyle Home': 'a luxury lifestyle setting with warm marble surface, soft natural window light, and shallow depth of field',
-      'Outdoor Nature': 'a natural outdoor setting with golden hour lighting, soft bokeh greenery in the background',
-      'Urban Street': 'an urban concrete surface with moody ambient street lighting and cinematic color grade',
-      'Luxury Minimal': 'a dark slate surface with dramatic side lighting, deep shadows and high contrast luxury editorial feel',
-      'E-commerce Clean': 'a pure white background with perfectly even lighting, no shadows, clean e-commerce style',
+      'Studio White': `Seamless pure white infinity cove backdrop. 
+  Twin softbox lighting from 45 degrees either side. 
+  Clean white surface with a barely visible ground shadow. 
+  Clinical perfection. Apple product photography style.`,
+      'Lifestyle Home': `Warm luxury home setting. Aged oak wooden surface. 
+  Soft natural window light from camera left. White linen fabric 
+  draped softly in background. Shallow depth of field. 
+  Kinfolk magazine editorial style.`,
+      'Outdoor Nature': `Natural outdoor rocky surface. Dappled golden hour 
+  sunlight from upper right. Wild grass and bokeh foliage background. 
+  Slight morning mist in background. National Geographic product style.`,
+      'Urban Street': `Wet urban concrete surface at night. 
+  Single harsh overhead street lamp creating dramatic shadows. 
+  Neon light color reflections on wet surface. 
+  Cinematic color grade — teal shadows, amber highlights. 
+  High fashion editorial style.`,
+      'Luxury Minimal': `Dark charcoal slate stone surface. 
+  Single dramatic side light from camera left creating deep shadows. 
+  Pure black background fading to dark grey. 
+  Subtle gold rim light from behind the product. 
+  Rolex advertisement style. Ultra premium.`,
+      'E-commerce Clean': `Pure white background. Perfectly even flat lighting 
+  from all sides — zero shadows except a very subtle ground shadow. 
+  Product perfectly centered. Amazon main image style. 
+  Clean, clinical, conversion-optimized.`,
     };
 
     let scenePrompt = '';
     if (backgroundScene in scenePrompts) {
       scenePrompt = scenePrompts[backgroundScene];
     } else {
-      scenePrompt = `${backgroundScene} professional product photography commercial quality studio grade`;
+      scenePrompt = `${backgroundScene}. Professional product photography, physically integrated lighting, commercial grade quality.`;
     }
 
-    const prompt = `Remove the background from this product completely. Replace it with: ${scenePrompt}. Make it look like a professional commercial product photograph. Preserve all product details, edges, and original lighting on the product itself. Output only the final composited image.`;
+    const sceneLower = (scenePrompt || '').toLowerCase();
+    const lightTemp = sceneLower.includes('studio') || sceneLower.includes('white')
+      ? '5500K clean daylight'
+      : sceneLower.includes('luxury')
+      ? '3200K warm golden'
+      : sceneLower.includes('outdoor')
+      ? '6500K natural sunlight'
+      : '4500K neutral';
+
+    const prompt = `You are a world-class commercial product photographer and 
+CGI compositor with 20 years experience shooting for Apple, 
+Nike, and Vogue.
+
+This is a real product image. Your task is to create a 
+photorealistic studio-quality product photograph.
+
+PRODUCT HANDLING:
+- Extract the product with perfect precision — clean edges, 
+  no fringing, no halo artifacts
+- Enhance the product's own texture, material quality, and 
+  surface detail — make it look sharper and more premium than 
+  the original
+- Upscale and sharpen the product itself before compositing
+- Preserve every design detail of the product exactly
+
+SCENE: ${scenePrompt}
+
+LIGHTING (CRITICAL):
+- Define ONE primary light source for the entire scene
+- The product MUST be lit by this exact same light source
+- Match the light direction, color temperature, and intensity 
+  on the product to the scene lighting perfectly
+- Add a subtle secondary fill light from the opposite side 
+  to prevent harsh shadows
+- Light color temperature: ${lightTemp}
+
+INTEGRATION (CRITICAL — fixes the pasted look):
+- The product must cast a natural shadow onto the surface below it
+- If the surface is reflective, add a subtle product reflection
+- Add very subtle ambient occlusion where the product meets the surface
+- The product should feel physically present in the scene, 
+  not floating or composited
+- Match any environmental color cast onto the product surface
+
+COMPOSITION:
+- Rule of thirds placement
+- Slight angle (15-25 degrees) for depth unless flat lay is specified
+- Leave negative space for text overlays if needed
+- Foreground and background elements should frame the product
+
+OUTPUT QUALITY:
+- Maximum resolution output — sharp, high detail
+- Medium format photography quality
+- Zero compression artifacts
+- Magazine cover quality — this image should be indistinguishable 
+  from a real professional photoshoot
+- Commercial advertising grade`;
 
     const match = imageUrl.match(/^data:([^;]+);base64,(.+)$/);
     if (!match) {
