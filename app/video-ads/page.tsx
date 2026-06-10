@@ -389,7 +389,7 @@ export default function VideoAdsPage() {
                       className="w-full mt-1 px-3 py-2 border border-[#E5E7EB] rounded-lg text-sm focus:outline-none focus:border-[#111111]"
                       placeholder="e.g. Young woman, casual style, energetic"
                     />
-                    <p className="text-xs text-[#9CA3AF] mt-1">Describe the AI creator's look and style</p>
+                    <p className="text-xs text-[#9CA3AF] mt-1">Describe the AI creator&apos;s look and style</p>
                   </div>
 
                   <PillSelect
@@ -576,9 +576,9 @@ export default function VideoAdsPage() {
           {/* Generate Button */}
           <button
             onClick={handleGenerate}
-            disabled={loading}
+            disabled={isDisabled}
             className={`w-full py-3 rounded-lg text-sm font-medium transition-colors flex items-center justify-center gap-2 ${
-              loading ? 'bg-[#E5E7EB] text-[#9CA3AF] cursor-not-allowed' : 'bg-[#111111] text-white hover:bg-[#333333]'
+              isDisabled ? 'bg-[#E5E7EB] text-[#9CA3AF] cursor-not-allowed' : 'bg-[#111111] text-white hover:bg-[#333333]'
             }`}
           >
             {loading ? <><Loader2 size={16} className="animate-spin" />{loadingStatus}</> : 'Generate Video Ad'}
