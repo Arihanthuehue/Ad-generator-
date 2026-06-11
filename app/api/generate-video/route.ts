@@ -22,6 +22,7 @@ export async function POST(req: NextRequest) {
       creatorDescription, creatorPosition, productInteraction,
       creatorScript, energyLevel, ugcSetting
     } = body;
+    const textDescription = prompt;
 
     // Check cache using all payload fields
     const cacheKey = await hashPayload(JSON.stringify({ 
@@ -78,6 +79,17 @@ export async function POST(req: NextRequest) {
     Typography feels intentional and brand-consistent.` : '';
 
       veoPrompt = `
+PRODUCT DESCRIPTION — FOLLOW EXACTLY:
+"${prompt || textDescription}"
+The above description is ABSOLUTE and NON-NEGOTIABLE.
+Every visual detail mentioned must appear exactly as described.
+Colors: reproduce EXACTLY as specified, no substitutions.
+Do not interpret, reimagine, or creatively reinterpret 
+the product description in any way.
+If white and green sneakers are described — they must be 
+white and green. Not grey. Not blue-green. Exactly as stated.
+This product description overrides all other creative decisions.
+
 UGC CREATOR ADVERTISEMENT — SOCIAL MEDIA STYLE
 
 A stylized digital CGI creator — ${creatorDescription || 'a stylish young person, casual confident style'} — 
@@ -127,6 +139,8 @@ Primary shot: medium shot (waist up) facing camera.
 Intercut with: close-up on product details, creator's face reaction.
 Shallow depth of field — creator and product sharp, background soft.
 Natural room lighting + subtle ring light reflection in eyes.
+Throughout every frame, the hero product (${prompt}) 
+must remain visually accurate to its description.
 
 SETTING:
 ${ugcSetting || 'Modern'} environment, lived-in and real.
@@ -164,6 +178,9 @@ Aspect ratio: ${aspectRatio} — optimized for social media.
 Vertical format preferred for Stories/Reels if 9:16 selected.
 Quality: Ultra sharp, broadcast ready.
 Feels authentic enough to be mistaken for a real UGC creator post.
+Product accuracy check: every frame must show 
+${prompt} exactly as described. No color drift, 
+no design deviation.
 
 NO TEXT OR CAPTIONS (CRITICAL):
 Do NOT render any text, words, letters, or numbers 
@@ -274,6 +291,17 @@ the video output must be clean plate only.
     Style: ${subtitleStyle}. Clean, readable, never distracting.` : ''}`;
 
       veoPrompt = `
+PRODUCT DESCRIPTION — FOLLOW EXACTLY:
+"${prompt || textDescription}"
+The above description is ABSOLUTE and NON-NEGOTIABLE.
+Every visual detail mentioned must appear exactly as described.
+Colors: reproduce EXACTLY as specified, no substitutions.
+Do not interpret, reimagine, or creatively reinterpret 
+the product description in any way.
+If white and green sneakers are described — they must be 
+white and green. Not grey. Not blue-green. Exactly as stated.
+This product description overrides all other creative decisions.
+
 COMMERCIAL VIDEO ADVERTISEMENT
 Brand: ${brandName || 'Premium Brand'}
 Product: ${productName || prompt}
@@ -281,6 +309,8 @@ ${keyMessage ? `Core Message: "${keyMessage}"` : ''}
 
 CINEMATOGRAPHY:
 ${styleLanguage[videoStyle] || styleLanguage['Product Showcase']}
+Throughout every frame, the hero product (${prompt}) 
+must remain visually accurate to its description.
 
 MOTION:
 ${motionLanguage[motionIntensity] || motionLanguage['Moderate']}
@@ -302,6 +332,9 @@ Resolution: Maximum quality, ultra sharp.
 Render quality: Photorealistic, indistinguishable from real footage.
 Standard: Cannes Lions Grand Prix commercial quality.
 Every frame must be beautiful enough to pause on.
+Product accuracy check: every frame must show 
+${prompt} exactly as described. No color drift, 
+no design deviation.
 
 NO TEXT OR CAPTIONS (CRITICAL):
 Do NOT render any text, words, letters, or numbers 
