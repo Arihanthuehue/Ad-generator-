@@ -86,21 +86,26 @@ is ${creatorPosition || 'standing'} in a ${ugcSetting || 'modern'} setting.
 The creator is ${productInteraction || 'holding'} the ${productName || 'product'} 
 for ${brandName || 'the brand'}.
 
-CREATOR APPEARANCE (MANDATORY):
-A stylized digital CGI human creator — ${creatorDescription || 'young stylish person, casual confident energy'}.
-FACE IS MANDATORY — the creator's face must be clearly 
-visible and expressive throughout the entire video.
-Full face shown — not obscured, not cut off, not turned away.
-Photorealistic CGI human face — not cartoon, not anime.
-Stylized digital human aesthetic — uncanny valley avoided.
-Natural micro-expressions: smile, raised eyebrow, enthusiasm.
-Real eye movement — blinks, glances at product, back to camera.
-Genuine human warmth and personality visible in the face.
-The face drives the emotional connection with the viewer.
-Primary shot framing: medium shot (chest up) so face 
-dominates the frame at all times.
-Even during product demonstration shots, face remains 
-partially visible or returns to frame immediately after.
+CREATOR APPEARANCE (HYPER-REALISTIC — MANDATORY):
+A real-looking person — ${creatorDescription || 'young stylish person, casual confident energy'}.
+This person must look completely and utterly real.
+Indistinguishable from actual footage of a real human being.
+Shot on camera realism — real skin texture, real pores, 
+real hair strands, real eye moisture and catchlights.
+Natural imperfections — not overly perfect or smoothed out.
+Real fabric texture on clothing, natural drape and movement.
+Micro-expressions that feel genuinely human and unscripted.
+The lighting on their face must have natural falloff — 
+not flat, not over-lit, real motivated light sources.
+Subsurface scattering on skin — light passes through 
+slightly at ears, nose tip, fingers.
+Real eye physics — pupils respond to light, natural 
+saccadic eye movement, genuine blinks.
+This must look like real documentary or vlog footage 
+of an actual person — never animated, never rendered, 
+never artificial.
+If this looks like CGI or animation in any way, it has failed.
+Photojournalism realism standard.
 
 PERFORMANCE:
 Energy: ${energyLevel || 'Authentic'}.
@@ -159,6 +164,18 @@ Aspect ratio: ${aspectRatio} — optimized for social media.
 Vertical format preferred for Stories/Reels if 9:16 selected.
 Quality: Ultra sharp, broadcast ready.
 Feels authentic enough to be mistaken for a real UGC creator post.
+
+NO TEXT OR CAPTIONS (CRITICAL):
+Do NOT render any text, words, letters, or numbers 
+anywhere in the video frames.
+Do NOT add subtitles, captions, or transcriptions.
+Do NOT add titles, headlines, lower thirds, or overlays.
+Do NOT add watermarks, logos rendered in video, or 
+any graphic text elements.
+Do NOT add any on-screen labels or annotations.
+The video must be completely free of any text elements.
+Text and graphics will be added separately in post — 
+the video output must be clean plate only.
 `.trim();
     } else {
       const styleLanguage: Record<string, string> = {
@@ -285,6 +302,18 @@ Resolution: Maximum quality, ultra sharp.
 Render quality: Photorealistic, indistinguishable from real footage.
 Standard: Cannes Lions Grand Prix commercial quality.
 Every frame must be beautiful enough to pause on.
+
+NO TEXT OR CAPTIONS (CRITICAL):
+Do NOT render any text, words, letters, or numbers 
+anywhere in the video frames.
+Do NOT add subtitles, captions, or transcriptions.
+Do NOT add titles, headlines, lower thirds, or overlays.
+Do NOT add watermarks, logos rendered in video, or 
+any graphic text elements.
+Do NOT add any on-screen labels or annotations.
+The video must be completely free of any text elements.
+Text and graphics will be added separately in post — 
+the video output must be clean plate only.
       `.trim();
     }
 

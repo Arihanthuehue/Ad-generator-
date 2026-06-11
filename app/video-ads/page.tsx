@@ -11,14 +11,8 @@ const DURATIONS = ['4s', '6s', '8s'];
 const ASPECT_RATIOS = ['9:16', '1:1', '16:9'];
 const MOTION = ['Subtle', 'Moderate', 'Dynamic'];
 
-const TEXT_POSITIONS = ['Top', 'Center', 'Bottom', 'Lower Third'];
-const TEXT_STYLES = ['Bold', 'Minimal', 'Elegant', 'Streetwear'];
-
 const VOICEOVER_TONES = ['Energetic', 'Calm', 'Authoritative', 'Friendly', 'Luxury'];
 const MUSIC_MOODS = ['Upbeat', 'Cinematic', 'Minimal', 'Dramatic', 'None'];
-
-const SUBTITLE_POSITIONS = ['Bottom', 'Top'];
-const SUBTITLE_STYLES = ['Clean', 'Bold', 'Highlighted'];
 
 const COLOR_GRADES = ['Natural', 'Warm', 'Cold', 'High Contrast', 'Cinematic Teal-Orange'];
 const SETTINGS = ['Studio', 'Outdoor', 'Urban', 'Home', 'Abstract'];
@@ -48,22 +42,10 @@ export default function VideoAdsPage() {
   const [energyLevel, setEnergyLevel] = useState('Authentic');
   const [ugcSetting, setUgcSetting] = useState('Bedroom');
 
-  // Section 3 — Text Overlays
-  const [headlineText, setHeadlineText] = useState('');
-  const [subheadline, setSubheadline] = useState('');
-  const [ctaText, setCtaText] = useState('');
-  const [textPosition, setTextPosition] = useState('Center');
-  const [textStyle, setTextStyle] = useState('Bold');
-
   // Section 4 — Audio & Dialogue
   const [voiceoverScript, setVoiceoverScript] = useState('');
   const [voiceoverTone, setVoiceoverTone] = useState('Friendly');
   const [musicMood, setMusicMood] = useState('Upbeat');
-
-  // Section 5 — Subtitles
-  const [subtitlesEnabled, setSubtitlesEnabled] = useState(false);
-  const [subtitlePosition, setSubtitlePosition] = useState('Bottom');
-  const [subtitleStyle, setSubtitleStyle] = useState('Clean');
 
   // Section 6 — Scene & Mood
   const [colorGrade, setColorGrade] = useState('Natural');
@@ -73,9 +55,7 @@ export default function VideoAdsPage() {
   const [brandExpanded, setBrandExpanded] = useState(true);
   const [contentExpanded, setContentExpanded] = useState(true);
   const [creatorExpanded, setCreatorExpanded] = useState(true);
-  const [textExpanded, setTextExpanded] = useState(false);
   const [audioExpanded, setAudioExpanded] = useState(false);
-  const [subtitlesExpanded, setSubtitlesExpanded] = useState(false);
   const [sceneExpanded, setSceneExpanded] = useState(false);
 
   const [loading, setLoading] = useState(false);
@@ -131,17 +111,9 @@ export default function VideoAdsPage() {
           keyMessage,
           videoStyle,
           motionIntensity,
-          headlineText,
-          subheadline,
-          ctaText,
-          textPosition,
-          textStyle,
           voiceoverScript,
           voiceoverTone,
           musicMood,
-          subtitlesEnabled,
-          subtitlePosition,
-          subtitleStyle,
           colorGrade,
           setting,
           // UGC Creator fields
@@ -244,8 +216,8 @@ export default function VideoAdsPage() {
     }
   }, [
     mode, productImage, textPrompt, videoStyle, duration, aspectRatio, motionIntensity,
-    brandName, productName, keyMessage, headlineText, subheadline, ctaText, textPosition, textStyle,
-    voiceoverScript, voiceoverTone, musicMood, subtitlesEnabled, subtitlePosition, subtitleStyle,
+    brandName, productName, keyMessage,
+    voiceoverScript, voiceoverTone, musicMood,
     colorGrade, setting, creatorDescription, creatorPosition, productInteraction, creatorScript,
     energyLevel, ugcSetting, addVideo, addToast, isFalJobRunning, setFalJobRunning
   ]);
@@ -436,53 +408,7 @@ export default function VideoAdsPage() {
             </div>
           )}
 
-          {/* SECTION 3 — Text Overlays */}
-          <div className="bg-white border border-[#E5E7EB] rounded-xl p-5 space-y-4">
-            <button
-              onClick={() => setTextExpanded(!textExpanded)}
-              className="w-full flex items-center justify-between text-sm font-semibold text-[#111111] focus:outline-none"
-            >
-              <span>Text Overlays</span>
-              {textExpanded ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
-            </button>
 
-            {textExpanded && (
-              <div className="space-y-4 pt-2 border-t border-[#F3F4F6]">
-                <div>
-                  <label className="text-sm font-medium text-[#374151]">Headline Text</label>
-                  <input
-                    type="text"
-                    value={headlineText}
-                    onChange={(e) => setHeadlineText(e.target.value)}
-                    className="w-full mt-1 px-3 py-2 border border-[#E5E7EB] rounded-lg text-sm focus:outline-none focus:border-[#111111]"
-                    placeholder="Main text shown on screen"
-                  />
-                </div>
-                <div>
-                  <label className="text-sm font-medium text-[#374151]">Subheadline</label>
-                  <input
-                    type="text"
-                    value={subheadline}
-                    onChange={(e) => setSubheadline(e.target.value)}
-                    className="w-full mt-1 px-3 py-2 border border-[#E5E7EB] rounded-lg text-sm focus:outline-none focus:border-[#111111]"
-                    placeholder="Secondary text or description"
-                  />
-                </div>
-                <div>
-                  <label className="text-sm font-medium text-[#374151]">CTA Text</label>
-                  <input
-                    type="text"
-                    value={ctaText}
-                    onChange={(e) => setCtaText(e.target.value)}
-                    className="w-full mt-1 px-3 py-2 border border-[#E5E7EB] rounded-lg text-sm focus:outline-none focus:border-[#111111]"
-                    placeholder="e.g. Shop Now, Learn More, Get Started"
-                  />
-                </div>
-                <PillSelect label="Text Position" options={TEXT_POSITIONS} value={textPosition} onChange={(v) => setTextPosition(v as string)} />
-                <PillSelect label="Text Style" options={TEXT_STYLES} value={textStyle} onChange={(v) => setTextStyle(v as string)} />
-              </div>
-            )}
-          </div>
 
           {/* SECTION 4 — Audio & Dialogue */}
           <div className="bg-white border border-[#E5E7EB] rounded-xl p-5 space-y-4">
@@ -524,36 +450,7 @@ export default function VideoAdsPage() {
             )}
           </div>
 
-          {/* SECTION 5 — Subtitles */}
-          <div className="bg-white border border-[#E5E7EB] rounded-xl p-5 space-y-4">
-            <button
-              onClick={() => setSubtitlesExpanded(!subtitlesExpanded)}
-              className="w-full flex items-center justify-between text-sm font-semibold text-[#111111] focus:outline-none"
-            >
-              <span>Subtitles</span>
-              {subtitlesExpanded ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
-            </button>
 
-            {subtitlesExpanded && (
-              <div className="space-y-4 pt-2 border-t border-[#F3F4F6]">
-                <div className="flex items-center justify-between">
-                  <label className="text-sm font-medium text-[#374151]">Enable Subtitles</label>
-                  <input
-                    type="checkbox"
-                    checked={subtitlesEnabled}
-                    onChange={(e) => setSubtitlesEnabled(e.target.checked)}
-                    className="w-4 h-4 text-[#111111] border-[#E5E7EB] rounded focus:ring-[#111111]"
-                  />
-                </div>
-                {subtitlesEnabled && (
-                  <>
-                    <PillSelect label="Subtitle Position" options={SUBTITLE_POSITIONS} value={subtitlePosition} onChange={(v) => setSubtitlePosition(v as string)} />
-                    <PillSelect label="Subtitle Style" options={SUBTITLE_STYLES} value={subtitleStyle} onChange={(v) => setSubtitleStyle(v as string)} />
-                  </>
-                )}
-              </div>
-            )}
-          </div>
 
           {/* SECTION 6 — Scene & Mood */}
           <div className="bg-white border border-[#E5E7EB] rounded-xl p-5 space-y-4">
